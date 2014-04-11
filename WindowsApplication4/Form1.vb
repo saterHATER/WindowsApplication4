@@ -88,7 +88,7 @@ Public Class Form1
             Dim sr As New System.IO.StreamReader("tableNames.txt")
             While sr.Read()
                 Dim currentTable As String = "T" & sr.ReadLine()
-                Console.WriteLine(currentTable)
+                'Console.WriteLine(currentTable)
                 'ITERATE OVER TABLE
                 'Dim currentTable = "tblJob"
                 Dim OleCmd = New OleDb.OleDbCommand("SELECT * FROM " & currentTable, OleConn) '************good
@@ -103,12 +103,12 @@ Public Class Form1
                     For columns = 0 To OleReader.FieldCount - 1
                         datum = datum & ", '" & OleReader.Item(columns) & "'"
                         fieldNames = fieldNames & ", " & OleReader.GetName(columns)
-                        Console.WriteLine(datum)
+                        'Console.WriteLine(datum)
                     Next
                     datum = datum.Substring(2, (datum.Length - 2))
                     fieldNames = fieldNames.Substring(2, (fieldNames.Length - 2))
                     Cmd.CommandText = "INSERT INTO " & currentTable & " (" & fieldNames & ")" & " VALUES (" & datum & ")"
-                    Console.WriteLine(Cmd.CommandText)
+                    'Console.WriteLine(Cmd.CommandText)
                     Cmd.Connection = sqlConn
                     Cmd.ExecuteNonQuery()
                     Console.ReadLine()
