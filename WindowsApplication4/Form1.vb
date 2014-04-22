@@ -1,11 +1,12 @@
 ﻿Imports System.Data.SqlClient
 Imports System.Data
 Imports System.Data.OleDb
+Imports System.IO
 
 Public Class Form1
     Inherits System.Windows.Forms.Form
     Dim OleConn As New OleDb.OleDbConnection    'We hate global variables but we need to persist over the whole app life
-    Dim sqlConn As SqlConnection                'must leave these connection variables as global persistant variables
+    Dim sqlConn As SqlConnection                'Must leave these connection variables as global persistant variables
     Dim oriGin As String = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source="                          'ugh, these are fine as well
     Dim secSchtuff As String = ";Persist Security Info=True;Jet OLEDB:Database Password=time2634"   'ugh, these are fine as well
 
@@ -36,7 +37,6 @@ Public Class Form1
         For Each drCurrent In tblJob.Rows
             ListBox1.Items.Add(drCurrent("DATABASE_NAME"))
         Next
-        Console.ReadLine()
         sqlConn.Close()
     End Sub
 
@@ -55,45 +55,51 @@ Public Class Form1
             sqlConn.ConnectionString = "Data Source=" & Environment.MachineName & "; Initial Catalog=" & ListBox1.SelectedItem.ToString() & "; Integrated Security=True;"
             Console.WriteLine(sqlConn.ConnectionString)
         Catch ex As Exception
-            MsgBox("oops: " & vbCrLf & ex.Message)
+            MsgBox("Bad SQL DB: " & vbCrLf & ex.Message & vbCrLf & sqlConn.ConnectionString)
         End Try
-        DBmuncher()
+        GoOverDB(True)
     End Sub
 
-    Function DBmuncher()
+    Function GoOverDB(ByVal readOrRemove As Boolean)
         Try
             sqlConn.Open()
             OleConn.Open()
-            Dim sr As New System.IO.StreamReader("tableNames.txt")
+            Dim FileContents As String = File.ReadAllText(Application.StartupPath & "\tableNames.txt")
+            Dim tableArray() As String = FileContents.Split(vbCrLf)
             'ITERATE OVER TABLE
-            While sr.Read()
-                Dim currentTable As String = "T" & sr.ReadLine() 'haven't quite fixed the readline() issue with sr
-                everyTable(currentTable)
-            End While
+            For I = 0 To tableArray.GetUpperBound(0)
+                Dim currentTable As String = tableArray(I)
+                Console.WriteLine("table: " & currentTable)
+                If readOrRemove Then
+                    GoOverTable(currentTable)
+                Else
+                    clearTable(currentTable)
+                End If
+            Next
         Catch ex As Exception
-            MsgBox("Yowchers! We didn't finish!: " & vbCrLf & ex.Message)
+            MsgBox("darn, the connection broke: " & vbCrLf & ex.Message)
         End Try
         OleConn.Close()
         sqlConn.Close()
         Return Nothing
     End Function
 
-    Function everyTable(ByVal tableName As String)
+    Function GoOverTable(ByVal tableName As String)
         Try
             Dim OleCmd = New OleDb.OleDbCommand("SELECT * FROM " & tableName, OleConn) 'grab all data from our access DB
             Dim OleReader As OleDbDataReader = OleCmd.ExecuteReader() 'grab all data from our access DB
             Dim rowCount As Int16 = 1
             While OleReader.Read()
-                everyRow(OleReader, tableName, rowCount)
+                goOverRow(OleReader, tableName, rowCount)
                 rowCount += 1
             End While
         Catch es As Exception
-            MsgBox("Arrg! reading" & tableName & " had a snag: " & vbCrLf & es.Message)
+            MsgBox("Arrg! reading " & tableName & " had a snag: " & vbCrLf & es.Message)
         End Try
         Return Nothing
     End Function
 
-    Function everyRow(ByVal oleReader As OleDbDataReader, ByVal tableName As String, ByVal rowNum As Int16)
+    Function goOverRow(ByVal oleReader As OleDbDataReader, ByVal tableName As String, ByVal rowNum As Int16)
         Try
             Dim dataRow As String = Nothing
             Dim fieldNames As String = Nothing
@@ -117,9 +123,35 @@ Public Class Form1
             sqlCmd.Connection = sqlConn
             sqlCmd.ExecuteNonQuery()
         Catch el As Exception
-            MsgBox("Aw, Snaps! We couldn't write to SQL!: " & vbCrLf & el.Message)
+            MsgBox("Aw, Snaps! We couldn't write to SQL!: " & vbCrLf & el.Message & vbCrLf & dataRow & "continue?" &, 1)
+            'If response = MsgBoxResult.Yes Then
+            '    vbAbort()
+            'End If
         End Try
         Return Nothing
     End Function
+
+    Function clearTable(ByVal tblName As String)
+        Try
+            Dim sqlCmd As New SqlCommand
+            sqlCmd.CommandText = "DELETE FROM " & tblName
+            sqlCmd.Connection = sqlConn
+            sqlCmd.ExecuteNonQuery()
+        Catch en As Exception
+            MsgBox("Couldn't Even Delete the table: " & vbCrLf & en.Message)
+        End Try
+        Return Nothing
+    End Function
+
+    Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
+        Try
+            Dim curItem As String = ListBox1.SelectedItem.ToString()
+            sqlConn.ConnectionString = "Data Source=" & Environment.MachineName & "; Initial Catalog=" & ListBox1.SelectedItem.ToString() & "; Integrated Security=True;"
+            Console.WriteLine(sqlConn.ConnectionString)
+        Catch ex As Exception
+            MsgBox("oops: " & vbCrLf & ex.Message)
+        End Try
+        GoOverDB(False)
+    End Sub
 
 End Class

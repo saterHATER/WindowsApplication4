@@ -25,6 +25,7 @@ Partial Class Form1
         Me.Button1 = New System.Windows.Forms.Button()
         Me.ListBox1 = New System.Windows.Forms.ListBox()
         Me.Button2 = New System.Windows.Forms.Button()
+        Me.Button3 = New System.Windows.Forms.Button()
         Me.SuspendLayout()
         '
         'Button1
@@ -54,11 +55,21 @@ Partial Class Form1
         Me.Button2.Text = "Start Upsizing!"
         Me.Button2.UseVisualStyleBackColor = True
         '
+        'Button3
+        '
+        Me.Button3.Location = New System.Drawing.Point(203, 41)
+        Me.Button3.Name = "Button3"
+        Me.Button3.Size = New System.Drawing.Size(88, 23)
+        Me.Button3.TabIndex = 3
+        Me.Button3.Text = "Clear SQL DB"
+        Me.Button3.UseVisualStyleBackColor = True
+        '
         'Form1
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(303, 270)
+        Me.Controls.Add(Me.Button3)
         Me.Controls.Add(Me.Button2)
         Me.Controls.Add(Me.ListBox1)
         Me.Controls.Add(Me.Button1)
@@ -70,5 +81,6 @@ Partial Class Form1
     Friend WithEvents Button1 As System.Windows.Forms.Button
     Friend WithEvents ListBox1 As System.Windows.Forms.ListBox
     Friend WithEvents Button2 As System.Windows.Forms.Button
+    Friend WithEvents Button3 As System.Windows.Forms.Button
 
 End Class

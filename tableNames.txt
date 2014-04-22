@@ -1,7 +1,10 @@
+tblProfile
 tblAccessRightsCompany
 tblAccessRightsDepartment
-tblAccessRightsLocation
+tblPayType
 tblAccessRightsShift
+tblShift
+tblAccessRightsLocation
 tblAccessUsers
 tblCompany
 tblDaily
@@ -13,11 +16,8 @@ tblJury
 tblLocation
 tblMessages
 tblOvertime
-tblPayType
 tblPerson
-tblProfile
 tblPTO
-tblShift
 tblSystem
 tblTotals
 tblTransactions
