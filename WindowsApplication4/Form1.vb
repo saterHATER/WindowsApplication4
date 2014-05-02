@@ -1,4 +1,4 @@
-﻿Imports System.Data.SqlClient
+Imports System.Data.SqlClient
 Imports System.Data
 Imports System.Data.OleDb
 Imports System.IO
@@ -42,7 +42,7 @@ Public Class Form1
 
     Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
         Dim dialog As New OpenFileDialog()
-        dialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop)
+        dialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
         dialog.Filter = "mdb files (*.mdb)|*.mdb|All files (*.*)|*.*"
         If DialogResult.OK = dialog.ShowDialog Then
             OleConn.ConnectionString = oriGin & dialog.FileName & secSchtuff
@@ -70,11 +70,8 @@ Public Class Form1
             For I = 0 To tableArray.GetUpperBound(0)
                 Dim currentTable As String = tableArray(I)
                 Console.WriteLine("table: " & currentTable)
-                If readOrRemove Then
-                    GoOverTable(currentTable)
-                Else
-                    clearTable(currentTable)
-                End If
+                GoOverTable(currentTable)
+                'clearTable(currentTable)
             Next
         Catch ex As Exception
             MsgBox("darn, the connection broke: " & vbCrLf & ex.Message)
@@ -115,33 +112,60 @@ Public Class Form1
     End Function
 
     Function writeToSQL(ByVal dataRow As String, ByVal tableName As String, ByVal fieldNames As String)
-        Try
             Dim sqlCmd As New SqlCommand
             dataRow = dataRow.Substring(2, (dataRow.Length - 2))
             fieldNames = fieldNames.Substring(2, (fieldNames.Length - 2))
             sqlCmd.CommandText = "INSERT INTO " & tableName & " (" & fieldNames & ")" & " VALUES (" & dataRow & ")"
             sqlCmd.Connection = sqlConn
             sqlCmd.ExecuteNonQuery()
-        Catch el As Exception
-            MsgBox("Aw, Snaps! We couldn't write to SQL!: " & vbCrLf & el.Message & vbCrLf & dataRow & "continue?" &, 1)
+
+        'Dim x = MsgBox("Aw, Snaps! We couldn't write to SQL!: " & vbCrLf & tableName & vbCrLf & dataRow & vbCrLf & fieldNames & vbCrLf & "continue?", 2)
             'If response = MsgBoxResult.Yes Then
             '    vbAbort()
             'End If
-        End Try
+            Console.WriteLine(dataRow + tableName + fieldNames)
+            ' Take some action based on the response. 
+
+        'If x = MsgBoxResult.Abort Then
+        'Application.Exit()
+
+        '    ElseIf x = MsgBoxResult.Retry Then
+        'writeToSQL(dataRow, tableName, fieldNames)
+        '   End If
+
+
         Return Nothing
     End Function
 
-    Function clearTable(ByVal tblName As String)
+    Function clearTables()
         Try
-            Dim sqlCmd As New SqlCommand
-            sqlCmd.CommandText = "DELETE FROM " & tblName
-            sqlCmd.Connection = sqlConn
-            sqlCmd.ExecuteNonQuery()
-        Catch en As Exception
-            MsgBox("Couldn't Even Delete the table: " & vbCrLf & en.Message)
+            sqlConn.Open()
+
+            Dim FileContents As String = File.ReadAllText(Application.StartupPath & "\tableNames1.txt")
+            Dim tableArray() As String = FileContents.Split(vbCrLf)
+            'ITERATE OVER TABLE
+            For I = 0 To tableArray.GetUpperBound(0)
+                Dim currentTable As String = tableArray(I)
+                Console.WriteLine("deleteing table: " & currentTable)
+                If currentTable <> Nothing Then
+                    Try
+                        Dim sqlCmd As New SqlCommand
+                        sqlCmd.CommandText = "DELETE FROM " & currentTable
+                        sqlCmd.Connection = sqlConn
+                        sqlCmd.ExecuteNonQuery()
+                    Catch en As Exception
+                        MsgBox("Couldn't Even Delete the table: " & vbCrLf & en.Message)
+                    End Try
+                End If
+            Next
+        Catch ex As Exception
+            MsgBox("darn, the connection broke: " & vbCrLf & ex.Message)
         End Try
+        sqlConn.Close()
         Return Nothing
     End Function
+
+
 
     Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
         Try
@@ -151,7 +175,7 @@ Public Class Form1
         Catch ex As Exception
             MsgBox("oops: " & vbCrLf & ex.Message)
         End Try
-        GoOverDB(False)
+        clearTables()
     End Sub
 
 End Class
